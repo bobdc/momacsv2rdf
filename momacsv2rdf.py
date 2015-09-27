@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+# todo:
+# - check c:/bob/dev/python/python.xml and make it this all more pythonic
+# - look at someone else's production code
+
 # momacsv2rdf.py: convert
 # https://github.com/MuseumofModernArt/collection/commits/master/Artworks.csv
 # to RDF, splitting up values into atomic ones where those atomic ones
@@ -27,6 +33,26 @@ workDateRangeRegEx = re.compile('(\d\d\d\d)(-(\d+))?')
 metricDimensionsRegex = re.compile('(\d+\.?\d*) x (\d+\.?\d*)( x (\d+\.?\d*))? cm')
 # at least 4 non-space chars because we don't want strings like  "cm)":
 dimensionsQualifierRegex = re.compile('([a-zA-z\.,\-\(\)\&\@\+:;]{4,}\s*)+')
+
+############# function definitions ################
+
+# Following is from http://bit.ly/1FBUMT7 on Stack Overflow,
+# although end='\n' there. Dealing with Unicode doesn't seem much
+# easier in Python 3 than it was in Python 2, which was awful at it.
+
+def uprint(*objects, sep=' ', end='', file=sys.stdout):
+    enc = file.encoding
+    if enc == 'UTF-8':
+        print(*objects, sep=sep, end=end, file=file)
+    else:
+        f = lambda obj: str(obj).encode(enc, errors='backslashreplace').decode(enc)
+        print(*map(f, objects), sep=sep, end=end, file=file)
+
+
+
+
+
+
 
 def convertRow(row):
          title = row[0] 
@@ -99,16 +125,13 @@ def convertRow(row):
                   if metricDimensionsMatches.group(4) != None:
                      depthCm = float(metricDimensionsMatches.group(4))
 
-              print("[" + str(heightCm) + "," + str(widthCm) + "," + str(depthCm) + "]")
-              ##print(type(widthCm))
-              ##print(20.2 * 3.3)
-              #area = (heightCm * widthCm)   # why doesn't this work?
-              ##print(area)
+              ##print("[" + str(heightCm) + "," + str(widthCm) + "," + str(depthCm) + "]")
 
               dimensionsQualifierMatches = dimensionsQualifierRegex.search(dimensions)
-              if dimensionsQualifierMatches != None:
-                  print("qualifier: " + dimensionsQualifierMatches.group(0))
+              #if dimensionsQualifierMatches != None:
+              #    print("qualifier: " + dimensionsQualifierMatches.group(0))
 
+              uprint(title + "\n")
 
 #############################################
 
