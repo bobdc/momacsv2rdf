@@ -10,13 +10,6 @@ import csv
 import sys
 import re
 
-if (len(sys.argv) < 2):
-    print("No filename provided as input.")
-    sys.exit()
-else:
-    inputfile = sys.argv[1]
-    
-
 # We could parse out the artistBio with one regex, but
 # the use of two will be easier to maintain.
 lifeDateRangeRegEx = re.compile('.* ((\d\d\d\d)(–(\d\d\d\d))?.*)?')
@@ -35,11 +28,7 @@ metricDimensionsRegex = re.compile('(\d+\.?\d*) x (\d+\.?\d*)( x (\d+\.?\d*))? c
 # at least 4 non-space chars because we don't want strings like  "cm)":
 dimensionsQualifierRegex = re.compile('([a-zA-z\.,\-\(\)\&\@\+:;]{4,}\s*)+')
 
-lineNumber = 1
-
-with open(inputfile,  encoding='utf-8') as f:
-    reader = csv.reader(f)
-    for row in reader:
+def convertRow(row):
          title = row[0] 
          artist = row[1]
          artistBio = row[2]
@@ -99,7 +88,6 @@ with open(inputfile,  encoding='utf-8') as f:
               widthCm = ""
               depthCm = ""
               dimensions = str.replace(dimensions,"×","x")
-              print(str(lineNumber) + ":== " + dimensions)
               metricDimensionsMatches = metricDimensionsRegex.search(dimensions)
               if metricDimensionsMatches != None:
                   # Based on the figures for Monet's "Water Lilies"
@@ -121,4 +109,20 @@ with open(inputfile,  encoding='utf-8') as f:
               if dimensionsQualifierMatches != None:
                   print("qualifier: " + dimensionsQualifierMatches.group(0))
 
-              lineNumber = lineNumber + 1
+
+#############################################
+
+if (len(sys.argv) < 2):
+    print("No filename provided as input.")
+    sys.exit()
+else:
+    inputfile = sys.argv[1]
+    
+try:
+   with open(inputfile,  encoding='utf-8') as f:
+       reader = csv.reader(f)
+       for row in reader:
+           convertRow(row)
+except FileNotFoundError as e:
+    print("File " + inputfile + " not found.")
+
