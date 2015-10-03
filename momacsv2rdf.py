@@ -16,6 +16,9 @@ import csv
 import sys
 import re
 
+extraSpaceRegEx = re.compile('^\s*(.+?)\s*$')
+allDigitsRegEx = re.compile('^\d+$')
+
 # We could parse out the artistBio with one regex, but
 # the use of two will be easier to maintain.
 lifeDateRangeRegEx = re.compile('.* ((\d\d\d\d)(–(\d\d\d\d))?.*)?')
@@ -49,9 +52,35 @@ def uprint(*objects, sep=' ', end='', file=sys.stdout):
         print(*map(f, objects), sep=sep, end=end, file=file)
 
 
+def printPredicateObjectIfObject(predicate,object,type):
+    # if the object isn't a blank string, print both. Use type to
+    # determine whether object needs quotes or is boolean.
+    if object != "":
 
 
+        if type == "boolean":
+            if object == "Y":
+                uprint("     " + predicate + " true ;\n")
+            elif object == "N":
+                uprint("     " + predicate + " false ;\n")
+                
+        elif type == "date":
+            uprint("     " + predicate + " \"" + object + "\"^^xsd:date ;\n")
 
+        elif type == "numeric":
+            uprint("     " + predicate + " " + str(object) + " ;\n")
+
+        elif type == "URI":
+            uprint("     " + predicate + " <" + object + "> ;\n")
+
+        else:    # Just treat it as a string. First remove leading and trailing space.
+            extraSpaceMatches = extraSpaceRegEx.match(object)
+            if extraSpaceMatches != None:
+                object = extraSpaceMatches.group(1)
+            object = str.replace(object,"\n"," ")
+            object = str.replace(object,"\\","\\\\")   # escape any backslashes
+            object = str.replace(object,"\"","\\\"")   # escape any quotes
+            uprint("     " + predicate + " \"" + object + "\" ;\n")
 
 
 def convertRow(row):
@@ -69,8 +98,13 @@ def convertRow(row):
          curatorApproved = row[11]
          objectID = row[12]
          url = row[13]
-         
-         if(momaNumber != "MoMANumber"): # if it's not the header row
+         allDigitsMatches = allDigitsRegEx.match(objectID)
+         if allDigitsMatches == None:  # not a proper objectID
+             uprint("# Error parsing the following input line (13th value not all digits):\n")
+             uprint("# ")
+             uprint(row)
+             uprint("\n\n")
+         elif(momaNumber != "MoMANumber"): # if it's not the header row
 
               # Get birth and death year figures
               birthYear = ""
@@ -81,7 +115,6 @@ def convertRow(row):
                      birthYear = lifeDateMatches.group(2)
                   if lifeDateMatches.group(4) != None:
                      deathYear = lifeDateMatches.group(4)
-              #print("[" + birthYear + " " + deathYear + "]")
 
               # Get nationality values
               citizenshipCountry = ""
@@ -92,7 +125,6 @@ def convertRow(row):
                      citizenshipCountry = nationalityMatches.group(1)
                   if nationalityMatches.group(3) != None:
                      birthCountry = nationalityMatches.group(3)
-                  #print(citizenshipCountry + " " + birthCountry)
 
               # If only one value in "date", make it workFinishDate. If two, set them as
               # workStartDate and workFinishDate (and account for 2-digit finish date).
@@ -125,13 +157,41 @@ def convertRow(row):
                   if metricDimensionsMatches.group(4) != None:
                      depthCm = float(metricDimensionsMatches.group(4))
 
-              ##print("[" + str(heightCm) + "," + str(widthCm) + "," + str(depthCm) + "]")
-
+              dimensionsQualifier = ""
               dimensionsQualifierMatches = dimensionsQualifierRegex.search(dimensions)
-              #if dimensionsQualifierMatches != None:
-              #    print("qualifier: " + dimensionsQualifierMatches.group(0))
+              if dimensionsQualifierMatches != None:
+                  dimensionsQualifier = dimensionsQualifierMatches.group(0)
 
-              uprint(title + "\n")
+              # I'd use the url value as the identifier, but they don't all have one,
+              # so when they do this adds an owl:sameAs triple.
+              print("<http://rdfdata.org/models/moma/id/" + objectID + ">")
+              printPredicateObjectIfObject("ci:P43_has_dimension",dimensions,"string")
+              printPredicateObjectIfObject("ci:P102_has_title",title,"string")
+              printPredicateObjectIfObject("dc:creator",artist,"string")
+              printPredicateObjectIfObject("rdaGr2:biographicalInformation",artistBio,"string")
+              printPredicateObjectIfObject("dc:date",date,"string")
+              printPredicateObjectIfObject("ci:P2_has_type",medium,"string")
+              printPredicateObjectIfObject("ci:P43_has_dimension",dimensions,"string")
+              printPredicateObjectIfObject("ci:P23_transferred_title_from",creditLine,"string")
+              printPredicateObjectIfObject("ci:P48_has_preferred_identifier",momaNumber,"string")
+              printPredicateObjectIfObject("m:classification",classification,"string")
+              printPredicateObjectIfObject("m:department",department,"string")
+              printPredicateObjectIfObject("m:dateAcquired",dateAcquired,"date")
+              printPredicateObjectIfObject("m:curatorApproved",curatorApproved,"boolean")
+              printPredicateObjectIfObject("dc:identifier",objectID,"string")
+              printPredicateObjectIfObject("owl:sameAs",url,"URI")
+              printPredicateObjectIfObject("m:widthCm",widthCm,"numeric")
+              printPredicateObjectIfObject("m:heightCm",heightCm,"numeric")
+              printPredicateObjectIfObject("m:widthCm",widthCm,"numeric")
+              printPredicateObjectIfObject("m:dimensionsQualifier",dimensionsQualifier,"string")
+              printPredicateObjectIfObject("rdaGr2:placeOfBirth",birthCountry,"string")
+              printPredicateObjectIfObject("rdaGr2:countryAssociatedWithThePerson",citizenshipCountry,"string")
+              printPredicateObjectIfObject("rdaGr2:dateOfBirth",birthYear,"numeric")
+              printPredicateObjectIfObject("rdaGr2:dateOfDeath",deathYear,"numeric")
+              printPredicateObjectIfObject("m:workStartDate",workStartDate,"numeric")
+              printPredicateObjectIfObject("m:workFinishDate",workFinishDate,"numeric")
+
+              print(".")
 
 #############################################
 
@@ -140,12 +200,23 @@ if (len(sys.argv) < 2):
     sys.exit()
 else:
     inputfile = sys.argv[1]
-    
+
+i = 0 # temporary
+cells = 0 # temporary
 try:
    with open(inputfile,  encoding='utf-8') as f:
        reader = csv.reader(f)
+       print("@prefix ci: <http://www.cidoc-crm.org/cidoc-crm/> .")
+       print("@prefix r: <http://rdvocab.info/ElementsGr2/> .")
+       print("@prefix m: <http://rdfdata.org/models/moma/> .")
+       print("@prefix dc: <http://purl.org/dc/elements/1.1/> .")
+       print("@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .")
+       print("@prefix rdaGr2: <http://RDVocab.info/ElementsGr2/> .")
+       print("@prefix owl: <http://www.w3.org/2002/07/owl#> .")
+       print("\n");
        for row in reader:
            convertRow(row)
+           
 except FileNotFoundError as e:
     print("File " + inputfile + " not found.")
 
