@@ -168,7 +168,7 @@ def convertRow(row):
          print("<http://rdfdata.org/models/moma/id/" + objectID + ">")
          printPredicateObjectIfObject("ci:P43_has_dimension",
                                       dimensions,"string")
-         printPredicateObjectIfObject("ci:P102_has_title",title,"string")
+         printPredicateObjectIfObject("rdfs:label",title,"string")
          printPredicateObjectIfObject("dc:creator",artist,"string")
          printPredicateObjectIfObject("rdaGr2:biographicalInformation",
                                       artistBio,"string")
@@ -216,6 +216,7 @@ else:
 try:
    with open(inputfile,  encoding='utf-8') as f:
        reader = csv.reader(f)
+       print("@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .")
        print("@prefix ci: <http://www.cidoc-crm.org/cidoc-crm/> .")
        print("@prefix r: <http://rdvocab.info/ElementsGr2/> .")
        print("@prefix m: <http://rdfdata.org/models/moma/> .")
