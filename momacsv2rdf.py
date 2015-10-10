@@ -16,7 +16,9 @@ allDigitsRegEx = re.compile('^\d+$')
 # We could parse out the artistBio with one regex,
 # but the use of two will be easier to maintain.
 lifeDateRangeRegEx = re.compile('.* ((\d\d\d\d)(–(\d\d\d\d))?.*)?')
-nationalityRegEx = re.compile('(\w+)(, born ([a-zA-Z]+))?')
+
+# want to match this: (French and Swiss, born Switzerland 1944)
+nationalityRegEx = re.compile('(\w+)( and (\w+))?(, born ([a-zA-Z]+))?')
 
 # Following must account for examples 1935 1939-43 1880-1910
 workDateRangeRegEx = re.compile('(\d\d\d\d)(-(\d+))?')
@@ -118,14 +120,17 @@ def convertRow(row):
                 deathYear = lifeDateMatches.group(4)
 
          # Get nationality values
-         citizenshipCountry = ""
+         citizenshipCountry1 = ""
+         citizenshipCountry2 = ""
          birthCountry = ""
          nationalityMatches = nationalityRegEx.search(artistBio)
-         if nationalityMatches != None:
+         if nationalityMatches != None:  
              if nationalityMatches.group(1) != None:
-                citizenshipCountry = nationalityMatches.group(1)
+                citizenshipCountry1 = nationalityMatches.group(1)
              if nationalityMatches.group(3) != None:
-                birthCountry = nationalityMatches.group(3)
+                citizenshipCountry2 = nationalityMatches.group(3)
+             if nationalityMatches.group(5) != None:
+                birthCountry = nationalityMatches.group(5)
 
          # If only one value in "date", make it
          # workFinishDate. If two, set them as workStartDate and
@@ -196,7 +201,9 @@ def convertRow(row):
          printPredicateObjectIfObject("rdaGr2:placeOfBirth",
                                       birthCountry,"string")
          printPredicateObjectIfObject("rdaGr2:countryAssociatedWithThePerson",
-                                      citizenshipCountry,"string")
+                                      citizenshipCountry1,"string")
+         printPredicateObjectIfObject("rdaGr2:countryAssociatedWithThePerson",
+                                      citizenshipCountry2,"string")
          printPredicateObjectIfObject("rdaGr2:dateOfBirth",birthYear,"numeric")
          printPredicateObjectIfObject("rdaGr2:dateOfDeath",deathYear,"numeric")
          printPredicateObjectIfObject("m:workStartDate",workStartDate,"numeric")
