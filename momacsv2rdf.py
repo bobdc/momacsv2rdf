@@ -3,6 +3,7 @@
 # to RDF, splitting up values into atomic ones where those atomic ones
 # may be useful.
 # I used python 3 instead of 2 because of its better handling of Unicode.
+# If running with Windows, remember to SET PYTHONIOENCODING=utf_8
 
 import csv
 import sys
@@ -35,18 +36,6 @@ dimensionsNoteRegex = re.compile('([a-zA-z\.,\-\(\)\&\@\+:;]{4,}\s*)+')
 
 ############# function definitions ################
 
-# Following is from http://bit.ly/1FBUMT7 on Stack Overflow,
-# although end='\n' there. Dealing with Unicode doesn't seem much
-# easier in Python 3 than it was in Python 2, which was awful at it.
-
-def uprint(*objects, sep=' ', end='', file=sys.stdout):
-    enc = file.encoding
-    if enc == 'UTF-8':
-        print(*objects, sep=sep, end=end, file=file)
-    else:
-        f = lambda obj: str(obj).encode(enc, errors='backslashreplace').decode(enc)
-        print(*map(f, objects), sep=sep, end=end, file=file)
-
 
 def printPredicateObjectIfObject(predicate,object,type):
 
@@ -58,18 +47,18 @@ def printPredicateObjectIfObject(predicate,object,type):
 
         if type == "boolean":
             if object == "Y":
-                uprint("     " + predicate + " true ;\n")
+                print("     " + predicate + " true ;\n")
             elif object == "N":
-                uprint("     " + predicate + " false ;\n")
+                print("     " + predicate + " false ;\n")
                 
         elif type == "date":
-            uprint("     " + predicate + ' "' + object + '"^^xsd:date ;\n')
+            print("     " + predicate + ' "' + object + '"^^xsd:date ;\n')
 
         elif type == "numeric":
-            uprint("     " + predicate + " " + str(object) + " ;\n")
+            print("     " + predicate + " " + str(object) + " ;\n")
 
         elif type == "URI":
-            uprint("     " + predicate + " <" + object + "> ;\n")
+            print("     " + predicate + " <" + object + "> ;\n")
 
         else:
             # Just treat it as a string. 
@@ -79,7 +68,7 @@ def printPredicateObjectIfObject(predicate,object,type):
             object = str.replace(object,"\n"," ")
             object = str.replace(object,"\\","\\\\")   # escape any backslashes
             object = str.replace(object,'"','\\"')   # escape any quotes
-            uprint("     " + predicate + ' "' + object + '" ;\n')
+            print("     " + predicate + ' "' + object + '" ;\n')
 
 
 
@@ -102,13 +91,15 @@ def convertRow(row):
     objectID = row[12]
     url = row[13]
     allDigitsMatches = allDigitsRegEx.match(objectID)
-    if allDigitsMatches == None:  # not a proper objectID
-        uprint("# Error parsing the following input line ")
-        uprint("(13th value not all digits):\n# ")
-        uprint(row)
-        uprint("\n\n")
-    elif(momaNumber != "MoMANumber"): # if it's not the header row
-
+    if(momaNumber == "MoMANumber"):
+        # It's the header row, so ignore
+        pass
+    elif allDigitsMatches == None:  # not a proper objectID
+        print("# Error parsing the following input line ")
+        print("(13th value not all digits):\n# ")
+        print(row)
+        print("\n\n")
+    else:
          # Get birth and death year figures
          birthYear = ""
          deathYear = ""
