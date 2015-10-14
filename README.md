@@ -1,7 +1,7 @@
 momacsv2rdf
 ===================
 
-Convert MoMA CSV to Turtle RDF.  Uses input from [https://github.com/MuseumofModernArt/collection] (https://github.com/MuseumofModernArt/collection]). 
+Convert MoMA CSV to Turtle RDF.  Uses input from [https://github.com/MuseumofModernArt/collection] (https://github.com/MuseumofModernArt/collection). 
 
 See *****blog entry URL**** for additional information. 
 
