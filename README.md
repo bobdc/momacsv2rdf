@@ -9,4 +9,11 @@ Attribution of source data: [![DOI](https://zenodo.org/badge/15218/MuseumofModer
 
 This dataset is placed in the public domain using a [CC0 License](https://creativecommons.org/publicdomain/zero/1.0/).
 
+The files: 
 
+momacsv2rdf.py: The python script that does the conversion. 
+
+Artworksttl.zip: The result of the conversion, zipped. 
+
+moma.ttl: declarations of non-standard property declarations used in the script's output.
+README.md: this file.
