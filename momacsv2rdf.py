@@ -47,18 +47,18 @@ def printPredicateObjectIfObject(predicate,object,type):
 
         if type == "boolean":
             if object == "Y":
-                print("     " + predicate + " true ;\n")
+                print("     " + predicate + " true ;")
             elif object == "N":
-                print("     " + predicate + " false ;\n")
+                print("     " + predicate + " false ;")
                 
         elif type == "date":
-            print("     " + predicate + ' "' + object + '"^^xsd:date ;\n')
+            print("     " + predicate + ' "' + object + '"^^xsd:date ;')
 
         elif type == "numeric":
-            print("     " + predicate + " " + str(object) + " ;\n")
+            print("     " + predicate + " " + str(object) + " ;")
 
         elif type == "URI":
-            print("     " + predicate + " <" + object + "> ;\n")
+            print("     " + predicate + " <" + object + "> ;")
 
         else:
             # Just treat it as a string. 
@@ -68,7 +68,7 @@ def printPredicateObjectIfObject(predicate,object,type):
             object = str.replace(object,"\n"," ")
             object = str.replace(object,"\\","\\\\")   # escape any backslashes
             object = str.replace(object,'"','\\"')   # escape any quotes
-            print("     " + predicate + ' "' + object + '" ;\n')
+            print("     " + predicate + ' "' + object + '" ;')
 
 
 
@@ -95,10 +95,10 @@ def convertRow(row):
         # It's the header row, so ignore
         pass
     elif allDigitsMatches == None:  # not a proper objectID
-        print("# Error parsing the following input line ")
-        print("(13th value not all digits):\n# ")
-        print(row)
-        print("\n\n")
+        print("# Error parsing the following input line ", end="")
+        print("(13th value of \"" + objectID + "\" is not all digits):\n# ", end="")
+        print(row, end="")
+        print("\n")
     else:
          # Get birth and death year figures
          birthYear = ""
