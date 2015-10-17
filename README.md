@@ -3,7 +3,7 @@ momacsv2rdf
 
 Convert MoMA CSV to Turtle RDF.  Uses input from [https://github.com/MuseumofModernArt/collection] (https://github.com/MuseumofModernArt/collection). 
 
-See *****blog entry URL**** for additional information. 
+See [Data wrangling, feature engineering, and dada] (http://www.snee.com/bobdc.blog/2015/10/data-wrangling-feature-enginee.html) for additional information. 
 
 Attribution of source data: [![DOI](https://zenodo.org/badge/15218/MuseumofModernArt/collection.svg)](https://zenodo.org/badge/latestdoi/15218/MuseumofModernArt/collection).
 
